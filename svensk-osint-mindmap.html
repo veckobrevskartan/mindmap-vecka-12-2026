@@ -1,0 +1,1167 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Svensk OSINT – Veckobrev Mindmap</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap');
+
+  :root {
+    --bg: #0a0c10;
+    --surface: #111318;
+    --surface2: #1a1d25;
+    --border: #2a2d3a;
+    --accent-sverige: #4a9eff;
+    --accent-norden: #4aefb8;
+    --accent-europa: #ef9b4a;
+    --accent-ovriga: #ef4a7b;
+    --text-primary: #e8eaf0;
+    --text-secondary: #8890a8;
+    --text-dim: #4a5068;
+    --center-glow: #4a9eff;
+    --line-color: #2a2d3a;
+    --node-hover: #ffffff08;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text-primary);
+    font-family: 'IBM Plex Sans', monospace;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
+    cursor: grab;
+  }
+
+  body.dragging { cursor: grabbing; }
+
+  #canvas-container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+  }
+
+  #svg-layer {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  #map-layer {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    transform-origin: 0 0;
+  }
+
+  /* CENTER NODE */
+  .center-node {
+    position: absolute;
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #1a2240 0%, #0d1020 100%);
+    border: 2px solid var(--accent-sverige);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    box-shadow: 0 0 40px #4a9eff33, 0 0 80px #4a9eff11;
+    z-index: 10;
+    transform: translate(-50%, -50%);
+    cursor: default;
+  }
+
+  .center-node .logo {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 3px;
+    color: var(--accent-sverige);
+    text-transform: uppercase;
+  }
+
+  .center-node .week {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    color: var(--text-secondary);
+    margin-top: 4px;
+    letter-spacing: 2px;
+  }
+
+  .center-node .pulse {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 1px solid var(--accent-sverige);
+    animation: pulse 3s ease-out infinite;
+    opacity: 0;
+  }
+
+  .center-node .pulse:nth-child(2) { animation-delay: 1s; }
+  .center-node .pulse:nth-child(3) { animation-delay: 2s; }
+
+  @keyframes pulse {
+    0% { transform: scale(1); opacity: 0.4; }
+    100% { transform: scale(1.6); opacity: 0; }
+  }
+
+  /* CATEGORY NODES */
+  .cat-node {
+    position: absolute;
+    border-radius: 12px;
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transform: translate(-50%, -50%);
+    z-index: 8;
+    border: 1.5px solid transparent;
+    transition: all 0.25s ease;
+    min-width: 130px;
+    justify-content: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    user-select: none;
+  }
+
+  .cat-node:hover { filter: brightness(1.3); transform: translate(-50%, -50%) scale(1.05); }
+  .cat-node.active { filter: brightness(1.4); transform: translate(-50%, -50%) scale(1.08); }
+
+  .cat-sverige { background: #4a9eff15; border-color: var(--accent-sverige); color: var(--accent-sverige); box-shadow: 0 0 20px #4a9eff22; }
+  .cat-norden  { background: #4aefb815; border-color: var(--accent-norden);  color: var(--accent-norden);  box-shadow: 0 0 20px #4aefb822; }
+  .cat-europa  { background: #ef9b4a15; border-color: var(--accent-europa);  color: var(--accent-europa);  box-shadow: 0 0 20px #ef9b4a22; }
+  .cat-ovriga  { background: #ef4a7b15; border-color: var(--accent-ovriga);  color: var(--accent-ovriga);  box-shadow: 0 0 20px #ef4a7b22; }
+
+  .cat-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* SUBCATEGORY NODES */
+  .sub-node {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    z-index: 7;
+    cursor: pointer;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 7px 12px;
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    letter-spacing: 0.5px;
+    max-width: 160px;
+    text-align: center;
+    transition: all 0.2s ease;
+    user-select: none;
+    line-height: 1.3;
+  }
+
+  .sub-node:hover {
+    border-color: #4a5068;
+    color: var(--text-primary);
+    background: var(--surface2);
+    transform: translate(-50%, -50%) scale(1.04);
+    z-index: 20;
+  }
+
+  .sub-node.active {
+    border-color: #4a5068;
+    background: var(--surface2);
+    color: var(--text-primary);
+  }
+
+  .sub-sverige:hover { border-color: var(--accent-sverige); }
+  .sub-norden:hover  { border-color: var(--accent-norden); }
+  .sub-europa:hover  { border-color: var(--accent-europa); }
+  .sub-ovriga:hover  { border-color: var(--accent-ovriga); }
+
+  /* ARTICLE PANEL */
+  #article-panel {
+    position: fixed;
+    right: 0;
+    top: 0;
+    width: 380px;
+    height: 100vh;
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    z-index: 100;
+    transform: translateX(100%);
+    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  #article-panel.open { transform: translateX(0); }
+
+  .panel-header {
+    padding: 20px 20px 14px;
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+
+  .panel-category {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .panel-title {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.3;
+  }
+
+  .panel-count {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    color: var(--text-dim);
+    margin-top: 4px;
+    letter-spacing: 1px;
+  }
+
+  .panel-close {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    cursor: pointer;
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    transition: all 0.15s;
+  }
+
+  .panel-close:hover { border-color: var(--text-secondary); color: var(--text-primary); }
+
+  .article-list {
+    flex: 1;
+    overflow-y: auto;
+    padding: 12px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .article-item {
+    display: block;
+    padding: 11px 13px;
+    margin-bottom: 6px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    text-decoration: none;
+    transition: all 0.15s;
+    background: var(--bg);
+    cursor: pointer;
+  }
+
+  .article-item:hover {
+    border-color: #4a5068;
+    background: var(--surface2);
+    transform: translateX(2px);
+  }
+
+  .article-headline {
+    font-size: 11.5px;
+    font-weight: 500;
+    color: var(--text-primary);
+    line-height: 1.4;
+    margin-bottom: 5px;
+  }
+
+  .article-meta {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 0.5px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .article-link-icon {
+    font-size: 9px;
+    opacity: 0.5;
+  }
+
+  /* HUD / INFO */
+  #hud {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 8px;
+    z-index: 50;
+  }
+
+  .hud-item {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+  }
+
+  #zoom-controls {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    z-index: 50;
+  }
+
+  .zoom-btn {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    color: var(--text-secondary);
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+  }
+
+  .zoom-btn:hover { border-color: var(--text-secondary); color: var(--text-primary); }
+
+  #title-bar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    background: linear-gradient(to bottom, var(--bg) 60%, transparent);
+    z-index: 50;
+    pointer-events: none;
+  }
+
+  .title-logo {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 4px;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+  }
+
+  .title-sep {
+    width: 1px;
+    height: 14px;
+    background: var(--border);
+  }
+
+  .title-week {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 2px;
+  }
+
+  /* LEGEND */
+  #legend {
+    position: fixed;
+    top: 50px;
+    left: 16px;
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    color: var(--text-dim);
+    letter-spacing: 1px;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: background 0.15s;
+  }
+
+  .legend-item:hover { background: var(--surface); }
+
+  .legend-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  /* SVG lines */
+  .line-sverige { stroke: var(--accent-sverige); }
+  .line-norden  { stroke: var(--accent-norden); }
+  .line-europa  { stroke: var(--accent-europa); }
+  .line-ovriga  { stroke: var(--accent-ovriga); }
+  .line-sub     { stroke: var(--border); }
+  .line-center  { stroke-opacity: 0.4; stroke-width: 1.5; }
+  .line-sub-edge { stroke-opacity: 0.25; stroke-width: 1; stroke-dasharray: 3,4; }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translate(-50%,-50%) scale(0.85); }
+    to   { opacity: 1; transform: translate(-50%,-50%) scale(1); }
+  }
+
+  .node-enter { animation: fadeIn 0.3s ease forwards; }
+</style>
+</head>
+<body>
+
+<div id="title-bar">
+  <span class="title-logo">Svensk OSINT</span>
+  <div class="title-sep"></div>
+  <span class="title-week">Veckobrev · V.12 · 2026</span>
+</div>
+
+<div id="legend">
+  <div class="legend-item" onclick="filterCategory('sverige')">
+    <div class="legend-dot" style="background:var(--accent-sverige)"></div>Sverige
+  </div>
+  <div class="legend-item" onclick="filterCategory('norden')">
+    <div class="legend-dot" style="background:var(--accent-norden)"></div>Norden
+  </div>
+  <div class="legend-item" onclick="filterCategory('europa')">
+    <div class="legend-dot" style="background:var(--accent-europa)"></div>Europa
+  </div>
+  <div class="legend-item" onclick="filterCategory('ovriga')">
+    <div class="legend-dot" style="background:var(--accent-ovriga)"></div>Övriga världen
+  </div>
+  <div class="legend-item" onclick="filterCategory(null)" style="margin-top:4px">
+    <div class="legend-dot" style="background:var(--border)"></div>Alla
+  </div>
+</div>
+
+<div id="canvas-container">
+  <svg id="svg-layer" xmlns="http://www.w3.org/2000/svg"></svg>
+  <div id="map-layer"></div>
+</div>
+
+<div id="article-panel">
+  <button class="panel-close" onclick="closePanel()">✕</button>
+  <div class="panel-header">
+    <div class="panel-category" id="panel-cat-label"></div>
+    <div class="panel-title" id="panel-sub-title"></div>
+    <div class="panel-count" id="panel-count"></div>
+  </div>
+  <div class="article-list" id="article-list"></div>
+</div>
+
+<div id="hud">
+  <div class="hud-item">DRAG FÖR ATT PANORERA</div>
+  <div class="hud-item">SCROLL FÖR ATT ZOOMA</div>
+  <div class="hud-item">KLICKA NOD FÖR ARTIKLAR</div>
+</div>
+
+<div id="zoom-controls">
+  <button class="zoom-btn" onclick="zoomIn()">+</button>
+  <button class="zoom-btn" onclick="zoomReset()">⌂</button>
+  <button class="zoom-btn" onclick="zoomOut()">−</button>
+</div>
+
+<script>
+// ============================================================
+//  DATA
+// ============================================================
+const DATA = {
+  categories: [
+    {
+      id: 'sverige',
+      label: 'Sverige',
+      color: 'var(--accent-sverige)',
+      cls: 'cat-sverige',
+      angle: 220,
+      dist: 260,
+      subcategories: [
+        {
+          id: 'sv-sakerhet',
+          label: 'Säkerhetspolitik & Hotbild',
+          angle: 195,
+          dist: 490,
+          articles: [
+            { title: 'Säkerhetspolisens lägesbild 2025–2026 – Ryssland och Kina dominerar hotbilden', url: 'https://www.linkedin.com/posts/svensk-osint_l%C3%A4gesbild-2025-2026-s%C3%A4kerhetspolisen-activity-7439992551584972800-teMz' },
+            { title: 'Eldfesten inställd i Stockholm och Göteborg pga. iranskt hot mot exiliranier', url: 'https://www.linkedin.com/posts/svensk-osint_eldfesten-activity-7439667501313032193-V-Ed' },
+            { title: 'Iran avrättade svensk-iranske Kourosh Keyvani för påstått Mossadspionage', url: 'https://www.linkedin.com/posts/svensk-osint_iran-statement-by-the-high-representative-activity-7441430351878688768-LiA' },
+          ]
+        },
+        {
+          id: 'sv-organiserad-brottslighet',
+          label: 'Organiserad brottslighet',
+          angle: 218,
+          dist: 500,
+          articles: [
+            { title: 'Störst beslaget av handgranater någonsin – Alingsås/Vårgårda, CaaS-mönster', url: 'https://www.linkedin.com/posts/svensk-osint_beslaget-av-granater-kan-vara-st%C3%B6rsta-i-sverige-activity-7439381682681626624-YuEJ' },
+            { title: 'Fårhuvud med olaga hot mot restaurang i centrala Stockholm, 18 mars', url: 'https://www.linkedin.com/posts/svensk-osint_18-mars-0343-olaga-hot-stockholm-polismyndigheten-activity-7440030891910799360-8IPt' },
+            { title: 'Fyra åtalas för kryptorån i Tobo – 2,5 mkr i krypto stulet under hot och misshandel', url: 'https://www.linkedin.com/posts/svensk-osint_fyra-m%C3%A4n-%C3%A5talas-f%C3%B6r-brutalt-kryptor%C3%A5n-activity-7439029451373424640-lgom' },
+            { title: 'Botoxbedrägerihärvan – 25 mkr i misstänkt felaktig fakturering, apotek stängs', url: 'https://www.linkedin.com/posts/svensk-osint_misst%C3%A4nks-f%C3%B6r-miljonbedr%C3%A4gerier-apotek-activity-7440356911734067200-5sF9' },
+            { title: 'Polisinsats mot sexköpare via digitala spår, hundratals domar i Stockholm', url: 'https://www.linkedin.com/posts/svensk-osint_s%C3%A5-reagerar-sexk%C3%B6parna-n%C3%A4r-polisen-knackar-activity-7439234094384975872-AL7C' },
+            { title: 'Fem svenska i Europols Operation Alice mot darknetnätverk', url: 'https://www.linkedin.com/posts/svensk-osint_svenskar-i-stort-europol-tillslag-activity-7441048631626956801-eS5E' },
+          ]
+        },
+        {
+          id: 'sv-infrastruktur',
+          label: 'Infrastruktur & Transport',
+          angle: 242,
+          dist: 490,
+          articles: [
+            { title: 'Myndighetsgemensam hamnkontroll i Oxelösund och Norrköping – underrättelsevärde', url: 'https://www.linkedin.com/posts/svensk-osint_extra-fokus-p%C3%A5-hamnarna-i-oxel%C3%B6sund-och-norrk%C3%B6ping-activity-7439560765063434241-zDTU' },
+            { title: 'Man frias för drönarflygning nära Landvetter – tillämpningsproblem i lagstiftning', url: 'https://www.linkedin.com/feed/update/urn:li:activity:7439680903158611969' },
+            { title: 'Klimataktivist döms till fängelse efter intrång på Malmö Airport', url: 'https://www.linkedin.com/posts/svensk-osint_f%C3%A4ngelse-f%C3%B6r-klimataktivist-activity-7440447152515977216-LRnA' },
+            { title: 'Västtrafik stoppar Islamic Relief som annonsör efter Sidas beslut', url: 'https://www.linkedin.com/posts/svensk-osint_v%C3%A4sttrafik-stoppar-annons%C3%B6r-efter-kritik-activity-7441396111635955712-oz6m' },
+          ]
+        },
+        {
+          id: 'sv-lagstiftning',
+          label: 'Lagstiftning & Rättsväsende',
+          angle: 260,
+          dist: 480,
+          articles: [
+            { title: 'Riksdagen inför säkerhetsförvaring som ny påföljd – träder i kraft 15 april 2026', url: 'https://www.linkedin.com/posts/svensk-osint_s%C3%A4kerhetsf%C3%B6rvaring-inf%C3%B6rs-som-ny-p%C3%A5f%C3%B6ljd-activity-7440132640281763840-Nwcv' },
+          ]
+        },
+        {
+          id: 'sv-politik',
+          label: 'Politik & Övrigt',
+          angle: 200,
+          dist: 440,
+          articles: [
+            { title: 'Katja Nyberg formellt politisk vilde – uppdrag i justitieutskott upphör', url: 'https://www.linkedin.com/posts/svensk-osint_nu-%C3%A4r-katja-nyberg-formellt-politisk-vilde-activity-7440887173035356161-EnJu' },
+            { title: 'Göteborgs stad tilldelar 1,65 mkr till judiskt kunskapscenter', url: 'https://www.linkedin.com/posts/svensk-osint_judiskt-kunskapscenter-i-g%C3%B6teborg-g%C3%B6teborgs-activity-7439633626322976769-ieju' },
+            { title: 'Eurail-dataintrång – svenska resenärers passnummer säljs på darknet via Telegram', url: 'https://www.linkedin.com/posts/svensk-osint_svenskar-t%C3%A5gluffares-passnummer-s%C3%A4ljs-efter-activity-7440723316283346945-IsK-' },
+            { title: 'BMW-rattar stals i Örebro och Västerås – stöldvåg', url: 'https://www.linkedin.com/posts/svensk-osint_20-mars-1422-%C3%B6vrigt-%C3%B6rebro-l%C3%A4n-polismyndigheten-activity-7441392314507452416-7ZfU' },
+          ]
+        },
+        {
+          id: 'sv-analys',
+          label: 'Analytiska reflektioner',
+          angle: 178,
+          dist: 460,
+          articles: [
+            { title: 'The Disjunction Effect – varför säkerhetsorganisationer tappar handlingskraft', url: 'https://www.linkedin.com/posts/svensk-osint_referenser-tversky-a-shafir-e-1992a-activity-7440386167340036096-8kf' },
+            { title: 'Legacy Thinking – föråldrade hotbilder och aktiv omvärldsbevakning', url: 'https://www.linkedin.com/posts/svensk-osint_legacy-thinking-inneb%C3%A4r-att-organisationer-activity-7439945510746017792--Fhl' },
+          ]
+        },
+      ]
+    },
+    {
+      id: 'norden',
+      label: 'Norden',
+      color: 'var(--accent-norden)',
+      cls: 'cat-norden',
+      angle: 320,
+      dist: 260,
+      subcategories: [
+        {
+          id: 'nord-transport',
+          label: 'Transport & Beredskap',
+          angle: 305,
+          dist: 490,
+          articles: [
+            { title: 'Joint Nordic Strategy for Transport System Preparedness – publicerad 24 feb 2026', url: 'https://www.linkedin.com/posts/svensk-osint_joint-nordic-strategy-for-transport-system-activity-7439042456538660864-BKS8' },
+          ]
+        },
+        {
+          id: 'nord-maritim',
+          label: 'Östersjösäkerhet',
+          angle: 325,
+          dist: 500,
+          articles: [
+            { title: '(Un)safe Waters – Rysslands skuggflotta och sabotage av undervattensinfrastruktur', url: 'https://www.linkedin.com/posts/svensk-osint_unsafe-waters-activity-7440125075296624640-DxW-' },
+          ]
+        },
+        {
+          id: 'nord-kina',
+          label: 'Kinesiskt inflytande',
+          angle: 345,
+          dist: 490,
+          articles: [
+            { title: 'Kinas påverkan i Norden/Baltikum – Shadow Wolf Warrior, Danmark och Litauen', url: 'https://www.linkedin.com/feed/update/urn:li:activity:7441037558945304576' },
+            { title: 'Finland: kinesiskt flyktingspionage mot uigurer – Skyddspolisen varnar', url: 'https://www.linkedin.com/posts/svensk-osint_wednesdays-papers-refugee-espionage-finnish-activity-7441425516076777473-M9aJ' },
+          ]
+        },
+        {
+          id: 'nord-demokrati',
+          label: 'Demokrati & Samhälle',
+          angle: 315,
+          dist: 430,
+          articles: [
+            { title: 'V-Dem Democracy Report 2026 – 74% av världen lever i autokrati, USA ej längre liberal demokrati', url: 'https://www.linkedin.com/posts/svensk-osint_democracy-report-2026-v-dem-activity-7440165523134398465-sq_C' },
+            { title: 'Norges narkotikasituation – höga överdosdödstal, avkriminaliseringsdebatt', url: 'https://www.linkedin.com/posts/svensk-osint_norway-and-its-drug-problem-activity-7440740413818241025-xrNt' },
+          ]
+        },
+      ]
+    },
+    {
+      id: 'europa',
+      label: 'Europa',
+      color: 'var(--accent-europa)',
+      cls: 'cat-europa',
+      angle: 40,
+      dist: 260,
+      subcategories: [
+        {
+          id: 'eu-hybridhot',
+          label: 'Hybridhot & Spionage',
+          angle: 15,
+          dist: 490,
+          articles: [
+            { title: 'Ryssland använder Wien som avlyssningsplattform – antennkluster på fastigheter', url: 'https://www.linkedin.com/posts/svensk-osint_from-viennas-rooftops-the-kremlin-is-listening-activity-7439919693483651073-8EW2' },
+            { title: 'Euro Eyes – tyskt förslag om europeiskt underrättelsenätverk', url: 'https://www.linkedin.com/posts/svensk-osint_german-lawmakers-float-euro-eyes-spy-network-activity-7439969450654625792-cnOq' },
+            { title: 'Rysslands informationspåverkan i Afrika – testmiljö för europeiska metoder (FOI)', url: 'https://www.linkedin.com/posts/svensk-osint_rysslands-informationsp%C3%A5verkan-i-afrika-activity-7439947871572914176-LQ4B' },
+            { title: 'Rysk specialenhet Center 795 (enhet 75127) avslöjad via Google Translate-miss', url: 'https://www.linkedin.com/posts/svensk-osint_lost-in-translation-how-russias-new-elite-activity-7439203417694030064-nXf9' },
+          ]
+        },
+        {
+          id: 'eu-iran',
+          label: 'Iranskt hot i Europa',
+          angle: 35,
+          dist: 510,
+          articles: [
+            { title: 'Faslane-gripande – misstänkt iransk medborgare försökte ta sig in på brittisk kärnvapenbas', url: 'https://www.linkedin.com/posts/svensk-osint_man-and-woman-arrested-after-trying-to-enter-activity-7440807810893897728-tON' },
+            { title: 'Rotterdam-synagogan bombades av Tilburg-tonåringar – iransk koppling utreds', url: 'https://www.linkedin.com/posts/svensk-osint_netherlands-probing-if-rotterdam-synagogue-activity-7439759622665748480-T-30' },
+            { title: 'Femte misstänkt gripen för Rotterdamattentatet, terroristiskt uppsåt', url: 'https://www.linkedin.com/posts/svensk-osint_dutch-police-apprehend-fifth-suspect-for-activity-7441472458576011264-Gmoz' },
+            { title: 'London: två åtalade under National Security Act för Iran-kopplad underrättelseverksamhet', url: 'https://www.linkedin.com/posts/svensk-osint_two-men-charged-with-national-security-act-activity-7440274311292035072--iui' },
+            { title: 'Nederlänska säkerhetsmyndigheter: främmande makter rekryterar vanliga medborgare', url: 'https://www.linkedin.com/posts/svensk-osint_foreign-governments-are-turning-to-ordinary-activity-7441427033030696960-zCOU' },
+          ]
+        },
+        {
+          id: 'eu-cyber',
+          label: 'Cyber & Sanktioner',
+          angle: 55,
+          dist: 500,
+          articles: [
+            { title: 'EU cybersanktioner mot kinesiska och iranska bolag – Emennet Pasargad kopplad till Sverige 2023', url: 'https://www.linkedin.com/posts/svensk-osint_cyber-attacks-against-the-eu-and-its-member-activity-7441423563162697728-9nMo' },
+            { title: 'FBI/CISA varnar för ryskt nätfiske mot Signal och WhatsApp – f.d. BND-vicechef drabbad', url: 'https://www.linkedin.com/posts/svensk-osint_former-germanys-foreign-intelligence-vp-activity-7441407495304126465-znoO' },
+            { title: 'Schweiz: kraftigt ökande cyberhot och spionage mot forskning och kritisk infrastruktur', url: 'https://www.linkedin.com/posts/svensk-osint_sharp-rise-in-cyberattacks-and-espionage-activity-7441428642855026688-eg9b' },
+          ]
+        },
+        {
+          id: 'eu-ukraina',
+          label: 'Ukraina',
+          angle: 68,
+          dist: 490,
+          articles: [
+            { title: 'SBU gripper FSB-agent i Odessa som styrt robotanfall mot luftförsvar', url: 'https://www.linkedin.com/posts/svensk-osint_sbu-detains-border-guard-in-odesa-on-suspicion-activity-7441421106101665792-pdbe' },
+            { title: 'Dubbelagent i ukrainska drönarstyrkor arbetat för FSB och Belarus', url: 'https://www.linkedin.com/posts/svensk-osint_sbu-detains-double-agent-of-russia-and-belarus-activity-7441440902276964352-Pta0' },
+            { title: 'Unga civila rekryterade via Telegram för mordbränder i Charkiv, Dnipro och Kropyvnytskyj', url: 'https://www.linkedin.com/posts/svensk-osint_russian-agent-detained-in-kharkiv-for-plotting-activity-7441446644996321280-z8gB' },
+            { title: 'Ryssland psyop mot ungersk minoritet i Zakarpattia inför ungerskt val', url: 'https://www.linkedin.com/posts/svensk-osint_russias-special-operation-against-hungarians-activity-7441438818303639552-U-fS' },
+            { title: 'DRILLAPP – rysk bakdörr spridd via Starlink-lockbeten och välgörenhetsbluff', url: 'https://www.linkedin.com/posts/svensk-osint_drillapp-new-backdoor-targeting-ukrainian-activity-7441405345941426176-Kbg-' },
+          ]
+        },
+        {
+          id: 'eu-skuggflotta',
+          label: 'Skuggflottan',
+          angle: 25,
+          dist: 440,
+          articles: [
+            { title: 'Arctic Metagaz driftar obemannad i Medelhavet med stor gaslast – miljöhot', url: 'https://www.linkedin.com/posts/svensk-osint_five-eu-leaders-seek-urgent-solution-for-activity-7440857009215913984-Yi87' },
+            { title: 'Frankrike bordar tankern Deyna – andra skuggflottebordning 2026', url: 'https://www.linkedin.com/posts/svensk-osint_french-navy-boards-a-tanker-in-the-mediterranean-activity-7440865501771231232-dFGS' },
+          ]
+        },
+        {
+          id: 'eu-framtid',
+          label: 'Framtida hotmiljö',
+          angle: 48,
+          dist: 440,
+          articles: [
+            { title: 'UK MOD Future Operating Environments 2040 – gråzon, AI och kognitiva domäner', url: 'https://www.linkedin.com/posts/svensk-osint_mod-activity-7440284621709168640-60Oz' },
+            { title: 'FOI Militärteknik 2050 – AI, autonomi, sensornätverk och rymdförmågor', url: 'https://www.linkedin.com/posts/svensk-osint_milit%C3%A4rteknik-2050-totalf%C3%B6rsvarets-forskningsinstitut-activity-7439948948376756224-oiLH' },
+            { title: 'Syntes UK/FOI-rapporter – konvergerande slutsatser om framtidens krigföring', url: 'https://www.linkedin.com/feed/update/urn:li:activity:7440285542979776512' },
+            { title: 'Underrättelseverksamhetens förändrade roll – navigera osäkerhet, ej reducera den', url: 'https://www.linkedin.com/posts/svensk-osint_underr%C3%A4ttelse-i-f%C3%B6r%C3%A4ndring-fr%C3%A5n-informationsinh%C3%A4mtning-activity-7440298625202585600-_06W' },
+          ]
+        },
+        {
+          id: 'eu-politik',
+          label: 'Europeisk politik',
+          angle: 15,
+          dist: 430,
+          articles: [
+            { title: 'Ungerskt val april 2026 – Fidesz vs Tisza, FOI-analys av tre dimensioner', url: 'https://www.linkedin.com/posts/svensk-osint_wallets-winners-and-world-views-key-dimensions-activity-7439619521977548800-jFfj' },
+            { title: 'Slovenien: Black Cube besökte oppositionens högkvarter inför val – utländsk påverkan', url: 'https://www.linkedin.com/posts/svensk-osint_new-findings-on-foreign-interference-in-slovenia-activity-7441410566587539456-YHWq' },
+            { title: 'UK-rättegång mot två män åtalade för spioneri åt Hongkong och Kina via HKETO London', url: 'https://www.linkedin.com/posts/svensk-osint_retired-police-officer-denies-hes-a-chinese-activity-7441437552840167424-SAvZ' },
+          ]
+        },
+      ]
+    },
+    {
+      id: 'ovriga',
+      label: 'Övriga världen',
+      color: 'var(--accent-ovriga)',
+      cls: 'cat-ovriga',
+      angle: 130,
+      dist: 260,
+      subcategories: [
+        {
+          id: 'ov-hormuz',
+          label: 'Hormuz-krisen',
+          angle: 105,
+          dist: 490,
+          articles: [
+            { title: 'Hormuzkrisen – systemstörning i global energi- och logistikkedja, force majeure Qatar', url: 'https://www.linkedin.com/posts/svensk-osint_iran-war-leaves-deep-costly-scar-on-mideast-activity-7440373525946826752-Gbyh' },
+            { title: 'Ras Laffan attackerad – 17% av Qatars LNG-kapacitet slagen ut, 3–5 år för reparation', url: 'https://www.linkedin.com/posts/svensk-osint_qatarenergy-lng-projects-remain-financially-activity-7440850226246082560-C1TX' },
+            { title: 'Heliummarknaden i kris – Qatar stoppar produktion, spotpriser fördubblats', url: 'https://www.linkedin.com/feed/update/urn:li:activity:7439684118226964480' },
+            { title: 'Fraktmarknaden kaotisk – Maersk +$1800/TEU, krigsriskpremier +1000%', url: 'https://www.linkedin.com/posts/svensk-osint_iran-conflict-turns-shipping-market-into-activity-7440115016219115520-LjVQ' },
+            { title: 'Flygbränsle fördubblats – SAS och Air France-KLM höjer priser inför sommaren', url: 'https://www.linkedin.com/posts/svensk-osint_flygbolag-flaggar-f%C3%B6r-dyrare-sommarresor-activity-7439739604318162944-Gn0Z' },
+          ]
+        },
+        {
+          id: 'ov-iran-proxy',
+          label: 'Iran – proxy & agentnätverk',
+          angle: 125,
+          dist: 510,
+          articles: [
+            { title: 'UAE slår ut Hizbollah/Iran-nätverk under täckmantel av kommersiell verksamhet', url: 'https://www.linkedin.com/posts/svensk-osint_state-security-apparatus-dismantles-terrorist-activity-7440841169477206016-r6JC' },
+            { title: 'Handala-cybergrupp: FBI beslagtar webbplatser – koppling till iranskt MOIS', url: 'https://www.linkedin.com/posts/svensk-osint_fbi-seizes-two-websites-linked-to-pro-iranian-activity-7440496323587387392-BZJv' },
+            { title: 'Stryker-attack via Microsoft Intune – tiotusentals enheter raderade utan traditionell malware', url: 'https://www.linkedin.com/posts/svensk-osint_stryker-attack-wiped-tens-of-thousands-of-activity-7439559501038391296-vRIL' },
+            { title: 'Behshad/Mensar – iranskt fartyg vid Eritrea misstänkt bidra med målgivning till Huthi', url: 'https://www.linkedin.com/posts/svensk-osint_chinese-and-russian-satellite-feeds-aid-iranian-activity-7439765320921251840-COBl' },
+            { title: 'Israel: Iron Dome-reservist sålde luftförsvarsinformation till Iran via Telegram', url: 'https://www.linkedin.com/posts/svensk-osint_israeli-citizen-indicted-for-alleged-iran-linked-activity-7441442163357507584-9GpB' },
+            { title: 'Hizbollah i strategisk kläm – försvagad avskräckning och begränsat handlingsutrymme', url: 'https://www.linkedin.com/posts/svensk-osint_lebanons-reluctant-shield-hezbollah-between-activity-7439947063275982849-MqLj' },
+          ]
+        },
+        {
+          id: 'ov-usa-politik',
+          label: 'USA – politik & underrättelse',
+          angle: 148,
+          dist: 500,
+          articles: [
+            { title: 'Joe Kent avgår som antiterrorchefen i protest – Iran inget omedelbart hot, Israel påverkade', url: 'https://www.linkedin.com/posts/svensk-osint_no-imminent-threat-us-counterterrorism-activity-7439676876958224384-dvDy' },
+            { title: 'Tulsi Gabbard: iranskt statsskick intakt men försvagat – undviker bevestigelse av hot', url: 'https://www.linkedin.com/posts/svensk-osint_us-intelligence-chief-tulsi-gabbard-says-activity-7440296806468620288-Cyau' },
+            { title: 'Trump: NATO-allierade avböjer militärt stöd vid Hormuz – "very foolish mistake"', url: 'https://www.linkedin.com/posts/svensk-osint_donald-trump-har-publicerat-ett-inl%C3%A4gg-p%C3%A5-activity-7439745055998832640-34DZ' },
+            { title: 'USA:s underrättelsegemenskap – hotbedömning 2026, militära hot och gråzon sammanvävda', url: 'https://www.linkedin.com/posts/svensk-osint_us-intelligence-community-manual-threat-activity-7441417525311193088-Gvpc' },
+            { title: 'Tucker Carlson i Vita huset utan formell roll – iranska kontakter under 2025', url: 'https://www.linkedin.com/posts/svensk-osint_tucker-carlson-expresses-fear-that-he-may-activity-7439588244574416896-Eg2O' },
+            { title: 'Iran avrättar 3 för protestatttacker + svensk medborgare – Amnesty: 1000+ avrättade 2025', url: 'https://www.linkedin.com/posts/svensk-osint_iran-over-1000-people-executed-as-authorities-activity-7440297647015383040-Og0g' },
+          ]
+        },
+        {
+          id: 'ov-cyber-global',
+          label: 'Global cyberbrottslighet',
+          angle: 165,
+          dist: 490,
+          articles: [
+            { title: 'Europol sinkholer 45 000 IP-adresser – botnät neutraliserat', url: 'https://www.linkedin.com/posts/svensk-osint_gigantiskt-botn%C3%A4t-har-slagits-ut-av-europol-activity-7439212295999823872-Wpr9' },
+            { title: 'GlassWorm – 400+ kodarkiv infekterade via osynliga Unicode och Solana-blockchain', url: 'https://www.linkedin.com/posts/svensk-osint_glassworm-malware-hits-400-code-repos-on-activity-7439936993440100352-bG3z' },
+            { title: 'INTERPOL: globala bedrägerieförluster 442 miljarder USD 2025, AI-drivna deepfakes', url: 'https://www.linkedin.com/posts/svensk-osint_interpol-activity-7439938917782585344-zd8-' },
+            { title: 'Intoxalock-attack: cyberangrepp mot alkolåsföretag slog mot rättsliga administrativa system', url: 'https://www.linkedin.com/posts/svensk-osint_breathalyzer-company-under-security-breach-activity-7440817166721040385-Dtge' },
+            { title: 'Drönare över Barksdale AFB (B-52, AFGSC) – ovanliga signaturer, 12–15 per våg', url: 'https://www.linkedin.com/posts/svensk-osint_multiple-waves-of-unauthorized-drones-recently-activity-7440810732402851840-vIHI' },
+          ]
+        },
+        {
+          id: 'ov-kina-tech',
+          label: 'Kina – teknik & Taiwan',
+          angle: 118,
+          dist: 450,
+          articles: [
+            { title: 'Tre åtalade för att ha smugglat AI-servrar värda 510 mkr USD till Kina via Sydostasien', url: 'https://www.linkedin.com/posts/svensk-osint_three-charged-with-conspiring-to-unlawfully-activity-7440805643269124096-dzAt' },
+            { title: 'USA:s underrättelsetjänster: Kina har inte beslutat om invasion av Taiwan till 2027', url: 'https://www.linkedin.com/posts/svensk-osint_us-intelligence-agencies-not-expecting-china-activity-7440680515835359232-XrBP' },
+            { title: '50 Cent Army – kinesiska statsnättroll är tjänstemän som översvämmar med patriotism', url: 'https://www.linkedin.com/feed/update/urn:li:activity:7440343244439220226' },
+            { title: 'Trump skjuter upp statsbesök i Kina med en månad pga. Irankriget', url: 'https://www.linkedin.com/posts/svensk-osint_any-trump-xi-rescheduling-would-be-over-logistics-activity-7439561778319183872-wZYO' },
+          ]
+        },
+        {
+          id: 'ov-osint-verktyg',
+          label: 'OSINT & Teknik',
+          angle: 135,
+          dist: 440,
+          articles: [
+            { title: 'BetterLeaks – open source secrets scanner, alternativ till Gitleaks, CI/CD-integration', url: 'https://www.linkedin.com/posts/svensk-osint_betterleaks-a-new-open-source-secrets-scanner-activity-7439209529763872769-V_Of' },
+            { title: 'Microsoft Project Silica – data i kvartsbaserat glas, arkivbeständig cold storage', url: 'https://www.linkedin.com/posts/svensk-osint_microsofts-project-silica-write-once-storage-activity-7439211199587631104-4KeS' },
+            { title: 'Terafab – Musk lanserar halvledarsatsning, hotar TSMC och Samsung', url: 'https://www.linkedin.com/posts/svensk-osint_elon-musk-says-his-chipmaking-terafab-project-activity-7439210827448102912-H3UP' },
+            { title: 'Vapenteknisk diffusion – $96 skulderburen robot visar sänkta teknologiska barriärer', url: 'https://www.linkedin.com/posts/svensk-osint_l%C3%A5gkostnadsinnovation-och-vapenteknisk-diffusion-activity-7440683284084244480-mf7F' },
+            { title: 'Moskvabor köper walkie-talkies – reaktion på Rysslands ökande internetkontroll', url: 'https://www.linkedin.com/posts/svensk-osint_ryska-internetkontrollen-v%C3%A4xer-moskvabor-activity-7439560993489334272-nPVu' },
+            { title: 'Reuters identifierar Robin Gunningham från Bristol som Banksy via OSINT-metodik', url: 'https://www.linkedin.com/posts/svensk-osint_utpekandet-av-banksy-den-anonyme-gatukonstn%C3%A4ren-activity-7439249115710132224-YQ6M' },
+            { title: 'Raulito – Castros son i kubansk säkerhets- och underrättelsestruktur', url: 'https://www.linkedin.com/posts/svensk-osint_with-the-us-pressuring-cuba-a-castro-known-activity-7439210555900346368-ECgM' },
+            { title: 'USA: Åtta dömda för terrorbrott mot immigrationsförvaret i Texas – antifa-koppling', url: 'https://www.linkedin.com/posts/svensk-osint_eight-convicted-of-terrorism-related-charges-activity-7439328852855918592-NN5O' },
+            { title: 'Temple Israel-attack Michigan + ODU-skjutning Virginia – ensamagerande radikalisering', url: 'https://www.linkedin.com/posts/svensk-osint_sleeper-cells-and-lone-attackers-security-activity-7439212804395438080-KawN' },
+            { title: 'Bank of America förlikas i Epstein-kopplad exploatering och människohandelstalan', url: 'https://www.linkedin.com/posts/svensk-osint_bank-of-america-settles-epstein-accusers-activity-7439560011946573824-MRB-' },
+          ]
+        },
+      ]
+    },
+  ]
+};
+
+// ============================================================
+//  STATE
+// ============================================================
+let transform = { x: 0, y: 0, scale: 1 };
+let centerX = 0, centerY = 0;
+const mapLayer = document.getElementById('map-layer');
+const svgLayer = document.getElementById('svg-layer');
+let isDragging = false;
+let startX, startY;
+let activeFilter = null;
+
+// ============================================================
+//  GEOMETRY
+// ============================================================
+function angleToRad(deg) { return deg * Math.PI / 180; }
+
+function getPos(cx, cy, angleDeg, dist) {
+  const r = angleToRad(angleDeg);
+  return { x: cx + Math.cos(r) * dist, y: cy + Math.sin(r) * dist };
+}
+
+// ============================================================
+//  INIT
+// ============================================================
+function init() {
+  centerX = window.innerWidth / 2;
+  centerY = window.innerHeight / 2;
+
+  // Set map layer transform
+  mapLayer.style.transform = `translate(0,0) scale(1)`;
+
+  buildMap();
+  setupDrag();
+  setupZoom();
+}
+
+function buildMap() {
+  mapLayer.innerHTML = '';
+  svgLayer.innerHTML = '';
+
+  const defs = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+
+  // Add radial gradient background
+  const radGrad = document.createElementNS('http://www.w3.org/2000/svg', 'radialGradient');
+  radGrad.id = 'centerGlow';
+  radGrad.setAttribute('cx', '50%');
+  radGrad.setAttribute('cy', '50%');
+  radGrad.setAttribute('r', '50%');
+  const stop1 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+  stop1.setAttribute('offset', '0%');
+  stop1.setAttribute('stop-color', '#4a9eff');
+  stop1.setAttribute('stop-opacity', '0.05');
+  const stop2 = document.createElementNS('http://www.w3.org/2000/svg', 'stop');
+  stop2.setAttribute('offset', '100%');
+  stop2.setAttribute('stop-color', '#4a9eff');
+  stop2.setAttribute('stop-opacity', '0');
+  radGrad.appendChild(stop1);
+  radGrad.appendChild(stop2);
+  defs.appendChild(radGrad);
+  svgLayer.appendChild(defs);
+
+  // Center glow background
+  const glowCircle = document.createElementNS('http://www.w3.org/2000/svg', 'ellipse');
+  glowCircle.setAttribute('cx', centerX);
+  glowCircle.setAttribute('cy', centerY);
+  glowCircle.setAttribute('rx', 400);
+  glowCircle.setAttribute('ry', 400);
+  glowCircle.setAttribute('fill', 'url(#centerGlow)');
+  svgLayer.appendChild(glowCircle);
+
+  // Create CENTER node
+  const center = document.createElement('div');
+  center.className = 'center-node';
+  center.style.left = centerX + 'px';
+  center.style.top = centerY + 'px';
+  center.innerHTML = `
+    <div class="pulse"></div>
+    <div class="pulse"></div>
+    <div class="pulse"></div>
+    <div class="logo">Svensk<br>OSINT</div>
+    <div class="week">V.12 · 2026</div>
+  `;
+  mapLayer.appendChild(center);
+
+  // Build categories and subcategories
+  DATA.categories.forEach(cat => {
+    const catPos = getPos(centerX, centerY, cat.angle, cat.dist);
+
+    // Line center → cat
+    drawLine(centerX, centerY, catPos.x, catPos.y, cat.cls + '-line center-line line-center', cat.color);
+
+    // Category node
+    const catEl = document.createElement('div');
+    catEl.className = `cat-node ${cat.cls}`;
+    catEl.style.left = catPos.x + 'px';
+    catEl.style.top = catPos.y + 'px';
+    catEl.dataset.catId = cat.id;
+    catEl.innerHTML = `<span class="cat-dot" style="background:${cat.color}"></span>${cat.label}`;
+    catEl.addEventListener('click', (e) => { e.stopPropagation(); toggleCategory(cat, catPos); });
+    mapLayer.appendChild(catEl);
+
+    // Subcategories
+    cat.subcategories.forEach(sub => {
+      const subPos = getPos(centerX, centerY, sub.angle, sub.dist);
+
+      // Line cat → sub
+      drawLine(catPos.x, catPos.y, subPos.x, subPos.y, `line-sub line-sub-edge sub-line-${cat.id}`, cat.color, true);
+
+      // Sub node
+      const subEl = document.createElement('div');
+      subEl.className = `sub-node sub-${cat.id}`;
+      subEl.style.left = subPos.x + 'px';
+      subEl.style.top = subPos.y + 'px';
+      subEl.dataset.subId = sub.id;
+      subEl.dataset.catId = cat.id;
+      subEl.textContent = sub.label;
+      subEl.title = `${sub.articles.length} artiklar`;
+      subEl.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openPanel(cat, sub);
+      });
+      mapLayer.appendChild(subEl);
+
+      // Article count badge
+      const badge = document.createElement('span');
+      badge.style.cssText = `
+        position:absolute;top:-7px;right:-7px;
+        background:${cat.color};color:#0a0c10;
+        border-radius:10px;padding:1px 5px;
+        font-family:'IBM Plex Mono',monospace;
+        font-size:8px;font-weight:600;
+        pointer-events:none;
+      `;
+      badge.textContent = sub.articles.length;
+      subEl.style.position = 'absolute';
+      subEl.appendChild(badge);
+    });
+  });
+}
+
+function drawLine(x1, y1, x2, y2, classes, color, isDashed = false) {
+  const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+  line.setAttribute('x1', x1);
+  line.setAttribute('y1', y1);
+  line.setAttribute('x2', x2);
+  line.setAttribute('y2', y2);
+  line.setAttribute('stroke', color);
+  line.setAttribute('stroke-width', isDashed ? '1' : '1.5');
+  line.setAttribute('stroke-opacity', isDashed ? '0.2' : '0.35');
+  if (isDashed) line.setAttribute('stroke-dasharray', '3,5');
+  line.setAttribute('class', classes);
+  svgLayer.appendChild(line);
+  return line;
+}
+
+// ============================================================
+//  PANEL
+// ============================================================
+function openPanel(cat, sub) {
+  const panel = document.getElementById('article-panel');
+  const catLabel = document.getElementById('panel-cat-label');
+  const subTitle = document.getElementById('panel-sub-title');
+  const countEl = document.getElementById('panel-count');
+  const list = document.getElementById('article-list');
+
+  catLabel.textContent = cat.label.toUpperCase();
+  catLabel.style.color = cat.color;
+  subTitle.textContent = sub.label;
+  countEl.textContent = `${sub.articles.length} ARTIKLAR / INLÄGG`;
+
+  list.innerHTML = '';
+  sub.articles.forEach((art, i) => {
+    const item = document.createElement('a');
+    item.className = 'article-item';
+    item.href = art.url;
+    item.target = '_blank';
+    item.rel = 'noopener noreferrer';
+    item.innerHTML = `
+      <div class="article-headline">${art.title}</div>
+      <div class="article-meta">
+        <span style="color:${cat.color};font-size:8px">●</span>
+        ${cat.label.toUpperCase()}
+        <span class="article-link-icon">↗</span>
+      </div>
+    `;
+    list.appendChild(item);
+  });
+
+  // Highlight active sub node
+  document.querySelectorAll('.sub-node').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll(`[data-sub-id="${sub.id}"]`).forEach(n => n.classList.add('active'));
+
+  panel.classList.add('open');
+}
+
+function closePanel() {
+  document.getElementById('article-panel').classList.remove('open');
+  document.querySelectorAll('.sub-node').forEach(n => n.classList.remove('active'));
+}
+
+// ============================================================
+//  FILTER
+// ============================================================
+function filterCategory(catId) {
+  activeFilter = catId;
+  const allCats = document.querySelectorAll('.cat-node');
+  const allSubs = document.querySelectorAll('.sub-node');
+  const allLines = svgLayer.querySelectorAll('line');
+
+  if (!catId) {
+    allCats.forEach(n => n.style.opacity = '1');
+    allSubs.forEach(n => n.style.opacity = '1');
+    allLines.forEach(l => l.style.opacity = '1');
+  } else {
+    allCats.forEach(n => {
+      n.style.opacity = n.dataset.catId === catId ? '1' : '0.2';
+    });
+    allSubs.forEach(n => {
+      n.style.opacity = n.dataset.catId === catId ? '1' : '0.15';
+    });
+  }
+}
+
+// ============================================================
+//  DRAG & ZOOM
+// ============================================================
+function applyTransform() {
+  mapLayer.style.transform = `translate(${transform.x}px, ${transform.y}px) scale(${transform.scale})`;
+  mapLayer.style.transformOrigin = '0 0';
+
+  // Sync SVG elements
+  const svgContent = svgLayer.querySelectorAll('*');
+  svgLayer.style.transform = mapLayer.style.transform;
+  svgLayer.style.transformOrigin = '0 0';
+}
+
+function setupDrag() {
+  let startTX, startTY;
+
+  document.addEventListener('mousedown', e => {
+    if (e.target.closest('#article-panel') || e.target.closest('#legend') ||
+        e.target.closest('#hud') || e.target.closest('#zoom-controls') ||
+        e.target.closest('#title-bar')) return;
+    isDragging = true;
+    startX = e.clientX;
+    startY = e.clientY;
+    startTX = transform.x;
+    startTY = transform.y;
+    document.body.classList.add('dragging');
+  });
+
+  document.addEventListener('mousemove', e => {
+    if (!isDragging) return;
+    transform.x = startTX + (e.clientX - startX);
+    transform.y = startTY + (e.clientY - startY);
+    applyTransform();
+  });
+
+  document.addEventListener('mouseup', () => {
+    isDragging = false;
+    document.body.classList.remove('dragging');
+  });
+}
+
+function setupZoom() {
+  document.addEventListener('wheel', e => {
+    if (e.target.closest('#article-panel')) return;
+    e.preventDefault();
+    const delta = e.deltaY > 0 ? 0.9 : 1.1;
+    const newScale = Math.min(Math.max(transform.scale * delta, 0.3), 2.5);
+
+    // Zoom toward cursor
+    const rect = document.getElementById('canvas-container').getBoundingClientRect();
+    const mouseX = e.clientX - rect.left;
+    const mouseY = e.clientY - rect.top;
+
+    const worldX = (mouseX - transform.x) / transform.scale;
+    const worldY = (mouseY - transform.y) / transform.scale;
+
+    transform.scale = newScale;
+    transform.x = mouseX - worldX * transform.scale;
+    transform.y = mouseY - worldY * transform.scale;
+
+    applyTransform();
+  }, { passive: false });
+}
+
+function zoomIn() {
+  const cx = window.innerWidth / 2;
+  const cy = window.innerHeight / 2;
+  const worldX = (cx - transform.x) / transform.scale;
+  const worldY = (cy - transform.y) / transform.scale;
+  transform.scale = Math.min(transform.scale * 1.2, 2.5);
+  transform.x = cx - worldX * transform.scale;
+  transform.y = cy - worldY * transform.scale;
+  applyTransform();
+}
+
+function zoomOut() {
+  const cx = window.innerWidth / 2;
+  const cy = window.innerHeight / 2;
+  const worldX = (cx - transform.x) / transform.scale;
+  const worldY = (cy - transform.y) / transform.scale;
+  transform.scale = Math.max(transform.scale / 1.2, 0.3);
+  transform.x = cx - worldX * transform.scale;
+  transform.y = cy - worldY * transform.scale;
+  applyTransform();
+}
+
+function zoomReset() {
+  transform = { x: 0, y: 0, scale: 1 };
+  applyTransform();
+}
+
+function toggleCategory(cat, catPos) {
+  // Highlight
+  document.querySelectorAll('.cat-node').forEach(n => n.classList.remove('active'));
+  document.querySelector(`[data-cat-id="${cat.id}"].cat-node`).classList.add('active');
+  filterCategory(cat.id);
+}
+
+// Click on canvas to deselect
+document.getElementById('canvas-container').addEventListener('click', e => {
+  if (e.target === document.getElementById('canvas-container') ||
+      e.target === document.getElementById('map-layer') ||
+      e.target === document.getElementById('svg-layer')) {
+    closePanel();
+    filterCategory(null);
+    document.querySelectorAll('.cat-node').forEach(n => n.classList.remove('active'));
+  }
+});
+
+// ============================================================
+//  START
+// ============================================================
+window.addEventListener('load', init);
+window.addEventListener('resize', () => { init(); });
+</script>
+</body>
+</html>
