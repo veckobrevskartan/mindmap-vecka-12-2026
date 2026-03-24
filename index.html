@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Veckobrev V.12 - Interaktiv Mindmap</title>
+    <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+    <style>
+        :root {
+            --bg-color: #f8f9fa;
+            --text-color: #212529;
+            --accent-color: #007bff;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+        header {
+            width: 100%;
+            padding: 2rem 0;
+            background: #ffffff;
+            border-bottom: 1px solid #dee2e6;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .container {
+            width: 95%;
+            max-width: 1400px;
+            background: #ffffff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+            overflow-x: auto;
+        }
+        .mermaid {
+            display: flex;
+            justify-content: center;
+        }
+        footer {
+            margin-top: auto;
+            padding: 2rem;
+            font-size: 0.9rem;
+            color: #6c757d;
+        }
+        /* Styling för klickbara länkar inuti Mermaid */
+        .node a {
+            fill: var(--accent-color) !important;
+            text-decoration: underline !important;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Veckobrev Vecka 12: Strategisk Lägesbild</h1>
+    <p>Interaktiv analys av säkerhet, teknik och geopolitik</p>
+</header>
+
+<div class="container">
+    <div class="mermaid">
+    mindmap
+      root((<b>Vecka 12</b>))
+        Sverige
+          Säkerhet & Hot
+            Säpo Lägesbild 25-26
+            Ryssland: Sabotage
+            Kina: Ekonomiskt hot
+            Iran: Ombud mot mål i SE
+          Kriminalitet
+            Granatbeslag Alingsås
+            Kryptorån Tobo
+            Fårhuvud Stockholm
+            Normalisering: CaaS & Unga
+          Rättsligt & Samhälle
+            Säkerhetsförvaring 2026
+            Hamnkontroller Oxelösund
+            Digital sexköpskontroll
+            Data-läcka Eurail
+        Norden & Baltikum
+          Strategi
+            Joint Nordic Transport
+            Sverige som Transitnod
+          Gråzon & Påverkan
+            (Un)safe Waters: Skuggflottan
+            Kinas påverkan: NB8-modeller
+            Litauen vs Danmark (Shadow Wolf)
+          Demokrati & Hälsa
+            V-Dem: Autokratisering
+            Norge: Narkotikasituation
+        Europa
+          Underrättelse & Spionage
+            Antenner i Wien (SIGINT)
+            Euro Eyes: Spy Network
+            Gripanden Faslane (UK)
+          Incidenter
+            Synagoga Rotterdam
+            Emennet Pasargad: Sanktioner
+            Schweiz: Cyberhot
+        Ukraina & Ryssland
+          Infiltration
+            FSB-agenter: Odessa & Charkiv
+            Dubbelagenter: Drönarstyrkor
+          Metoder
+            Rekrytering: Dejtingsajter
+            Center 795: Elite Unit
+            Radio vs Internet i Moskva
+        Globalt & Teknik
+          Energikris Hormuz
+            LNG-stopp Qatar
+            Heliumbrist
+            Rederiavgifter: Maersk/MSC
+          Geopolitik USA
+            Trump & NATO: Hormuz-dispyt
+            Tulsi Gabbard: Hotbedömning
+            Joe Kent: Avhopp
+          Framtidsteknik
+            FOI: Militärteknik 2050
+            Lågkostnadsrobotar (96 USD)
+            AI-smuggling till Kina
+            Drones over Barksdale AFB
+    </div>
+</div>
+
+<footer>
+    Genererad för GitHub Pages | Baserad på OSINT-analys Vecka 12, 2026
+</footer>
+
+<script>
+    mermaid.initialize({ 
+        startOnLoad: true,
+        theme: 'forest',
+        securityLevel: 'loose',
+        mindmap: {
+            useMaxWidth: true,
+            padding: 20
+        }
+    });
+</script>
+
+</body>
+</html>
