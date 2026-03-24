@@ -3,117 +3,152 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Veckobrev V.12 - Interaktiv Mindmap</title>
+    <title>OSINT Veckobrev V.12 - Strategisk Analys</title>
     <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
     <style>
-        :root {
-            --bg-color: #f8f9fa;
-            --text-color: #212529;
-        }
-        body {
-            font-family: sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        header {
-            width: 100%;
-            padding: 2rem 0;
-            background: white;
-            border-bottom: 1px solid #dee2e6;
-            text-align: center;
-        }
-        .container {
-            width: 95%;
-            margin-top: 2rem;
-            background: white;
-            padding: 20px;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
-        }
+        body { font-family: 'Segoe UI', sans-serif; background-color: #f0f2f5; margin: 0; display: flex; flex-direction: column; align-items: center; }
+        header { width: 100%; padding: 20px 0; background: #1a202c; color: white; text-align: center; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+        .container { width: 98vw; height: 85vh; margin: 10px; background: white; border-radius: 8px; overflow: hidden; }
+        .mermaid { height: 100%; display: flex; justify-content: center; align-items: center; }
+        footer { padding: 10px; font-size: 0.8rem; color: #666; }
     </style>
 </head>
 <body>
 
 <header>
-    <h1>Veckobrev Vecka 12: Strategisk Lägesbild</h1>
-    <p>Korrigerad version utan syntaxfel</p>
+    <h1>Strategisk Omvärldsanalys: Vecka 12, 2026</h1>
+    <p>Interaktiv Mindmap - Klicka på de inramade noderna för att läsa källan på LinkedIn</p>
 </header>
 
 <div class="container">
-    <div class="mermaid">
+    <pre class="mermaid">
     mindmap
-      root((Vecka 12))
+      root((<b>VECKA 12</b>))
         Sverige
-          Sakerhet och Hot
-            Sapo Lagesbild
-            Ryssland Sabotage
-            Kina Ekonomi
-            Iran Ombud
+          Hotbild & Säpo
+            ["Säpo Lägesbild 25-26"]
+            ["Eldfesten inställd"]
+            ["Utvisning av vilde"]
           Kriminalitet
-            Granatbeslag Alingsas
-            Kryptoran Tobo
-            Farhuvud Stockholm
-            Normalisering Caas
-          Rattsligt
-            Sakerhetsforvaring 2026
-            Hamnkontroller
-            Sexkopskontroll
-            Eurail Lacka
-        Norden
-          Strategi
-            Joint Nordic Transport
-            Transitnod Sverige
-          Grazon
-            Unsafe Waters
-            Skuggflottan
-            Kina NB8 paverkan
-          Demokrati
-            V-Dem Autokratisering
-            Norge Narkotika
+            ["Granatbeslag Alingsås"]
+            ["Kryptorån Tobo"]
+            ["Fårhuvud Stockholm"]
+            ["BMW-rattar stöldvåg"]
+          Rättsligt & Samhälle
+            ["Säkerhetsförvaring 15 april"]
+            ["Digital sexköpskontroll"]
+            ["Hamnkontroll Oxelösund"]
+            ["Apoteksbedrägeri Botox"]
+            ["Klimataktivist fängelse"]
+            ["Eurail Dataläcka"]
+            ["Judiskt center Gbg"]
+        Norden & Baltikum
+          Strategi & Transport
+            ["Joint Nordic Strategy"]
+          Östersjön & Gråzon
+            ["Unsafe Waters rapport"]
+            ["Kina NB8 påverkan"]
+          Demokrati & Hälsa
+            ["V-Dem Democracy Report"]
+            ["Norge Narkotikaproblem"]
+            ["Kinesiskt flyktingspionage"]
         Europa
-          Spionage
-            SIGINT Wien
-            Euro Eyes natverk
-            Gripanden Faslane
-          Incidenter
-            Synagoga Rotterdam
-            Emennet Pasargad
-            Schweiz Cyberhot
-        Ukraina
-          Infiltration
-            FSB agenter
-            Dubbelagenter
-          Metoder
-            Rekrytering Dejtingsajter
-            Center 795 enhet
-            Radio i Moskva
-        Globalt och Teknik
-          Energikris
-            Hormuzsundet
-            LNG stopp Qatar
-            Heliumbrist
-            Rederiavgifter
-          Geopolitik
-            Trump och NATO
-            Tulsi Gabbard hotbild
-            Joe Kent avhopp
-          Framtidsteknik
-            FOI Militarteknik 2050
-            Lagkostnadsrobotar
-            AI smuggling
-            Barksdale AFB dronare
-    </div>
+          Underrättelse & Spionage
+            ["SIGINT Antenner Wien"]
+            ["Euro Eyes Spy Network"]
+            ["Gripande Faslane"]
+            ["Iran-spioner London"]
+          Incidenter & Hot
+            ["Synagoga Rotterdam"]
+            ["Emennet Cybersanktioner"]
+            ["Schweiz Cyberhot"]
+            ["Black Cube Slovenien"]
+        Ukraina & Ryssland
+          Gripanden & Agenter
+            ["FSB-agent Odessa"]
+            ["Dubbelagent Drönarstyrka"]
+            ["Charkiv kraftverk-spion"]
+            ["Rekrytering Dejtingsajter"]
+          Operationer
+            ["Psykop i Zakarpattia"]
+            ["Drillapp Malware"]
+            ["Walkie-talkies Moskva"]
+        Globalt & Ekonomi
+          Energikris Hormuz
+            ["Hormuz Systemstörning"]
+            ["Heliumbrist Qatar"]
+            ["Ras Laffan skador"]
+            ["Maersk/MSC avgifter"]
+          Sjöfart & Bordning
+            ["Arctic Metagaz drivit"]
+            ["Bordning av Deyna"]
+            ["Behshad spionfartyg"]
+          Geopolitik USA
+            ["Trump Hormuz-dispyt"]
+            ["Joe Kent avgång"]
+            ["Tulsi Gabbard utfrågning"]
+            ["Trump-Xi statsbesök"]
+        Teknik & Framtid
+          Militärteknik
+            ["FOI Militärteknik 2050"]
+            ["Future Environments 2040"]
+            ["Lågkostnadsrobot 96 USD"]
+            ["AI-smuggling till Kina"]
+          IT-Säkerhet & Genombrott
+            ["GlassWorm Malware"]
+            ["Interpol Bedrägerirapport"]
+            ["FBI stänger Handala"]
+            ["Project Silica Glaslagring"]
+            ["Terafab Halvledare"]
+
+      %% KLICKBARA LÄNKAR SVERIGE
+      click "Säpo Lägesbild 25-26" "https://www.linkedin.com/posts/svensk-osint_l%C3%A4gesbild-2025-2026-s%C3%A4kerhetspolisen-activity-7439992551584972800-teMz"
+      click "Fårhuvud Stockholm" "https://www.linkedin.com/posts/svensk-osint_18-mars-0343-olaga-hot-stockholm-polismyndigheten-activity-7440030891910799360-8IPt"
+      click "Granatbeslag Alingsås" "https://www.linkedin.com/posts/svensk-osint_beslaget-av-granater-kan-vara-st%C3%B6rsta-i-sverige-activity-7439381682681626624-YuEJ"
+      click "Säkerhetsförvaring 15 april" "https://www.linkedin.com/posts/svensk-osint_s%C3%A4kerhetsf%C3%B6rvaring-inf%C3%B6rs-som-ny-p%C3%A5f%C3%B6ljd-activity-7440132640281763840-Nwcv"
+      click "Eldfesten inställd" "https://www.linkedin.com/posts/svensk-osint_eldfesten-activity-7439667501313032193-V-Ed"
+      click "BMW-rattar stöldvåg" "https://www.linkedin.com/posts/svensk-osint_20-mars-1422-%C3%B6vrigt-%C3%B6rebro-l%C3%A4n-polismyndigheten-activity-7441392314507452416-7ZfU"
+      click "Hamnkontroll Oxelösund" "https://www.linkedin.com/posts/svensk-osint_extra-fokus-p%C3%A5-hamnarna-i-oxel%C3%B6sund-och-norrk%C3%B6ping-activity-7439560765063434241-zDTU"
+      click "Kryptorån Tobo" "https://www.linkedin.com/posts/svensk-osint_fyra-m%C3%A4n-%C3%A5talas-f%C3%B6r-brutalt-kryptor%C3%A5n-activity-7439029451373424640-lgom"
+      click "Apoteksbedrägeri Botox" "https://www.linkedin.com/posts/svensk-osint_misst%C3%A4nks-f%C3%B6r-miljonbedr%C3%A4gerier-apotek-activity-7440356911734067200-5sF9"
+      click "Klimataktivist fängelse" "https://www.linkedin.com/posts/svensk-osint_f%C3%A4ngelse-f%C3%B6r-klimataktivist-activity-7440447152515977216-LRnA"
+      click "Digital sexköpskontroll" "https://www.linkedin.com/posts/svensk-osint_100-telefonnummer-utreds-efter-polisinsats-activity-7439560709228810240-5qPc"
+      click "Eurail Dataläcka" "https://www.linkedin.com/posts/svensk-osint_svenskar-t%C3%A5gluffares-passnummer-s%C3%A4ljs-efter-activity-7440723316283346945-IsK-"
+      click "Utvisning av vilde" "https://www.linkedin.com/posts/svensk-osint_nu-%C3%A4r-katja-nyberg-formellt-politisk-vilde-activity-7440887173035356161-EnJu"
+
+      %% KLICKBARA LÄNKAR NORDEN/EUROPA
+      click "Joint Nordic Strategy" "https://www.linkedin.com/posts/svensk-osint_joint-nordic-strategy-for-transport-system-activity-7439042456538660864-BKS8"
+      click "V-Dem Democracy Report" "https://www.linkedin.com/posts/svensk-osint_democracy-report-2026-v-dem-activity-7440165523134398465-sq_C"
+      click "Unsafe Waters rapport" "https://www.linkedin.com/posts/svensk-osint_unsafe-waters-activity-7440125075296624640-DxW-"
+      click "SIGINT Antenner Wien" "https://www.linkedin.com/posts/svensk-osint_from-viennas-rooftops-the-kremlin-is-listening-activity-7439919693483651073-8EW2"
+      click "Synagoga Rotterdam" "https://www.linkedin.com/posts/svensk-osint_netherlands-probing-if-rotterdam-synagogue-activity-7439759622665748480-T-30"
+      click "Gripande Faslane" "https://www.linkedin.com/posts/svensk-osint_man-and-woman-arrested-after-trying-to-enter-activity-7440807810893897728-tON_"
+      click "Euro Eyes Spy Network" "https://www.linkedin.com/posts/svensk-osint_german-lawmakers-float-euro-eyes-spy-network-activity-7439969450654625792-cnOq"
+
+      %% GLOBAL & TEKNIK
+      click "Hormuz Systemstörning" "https://www.linkedin.com/posts/svensk-osint_iran-war-leaves-deep-costly-scar-on-mideast-activity-7440373525946826752-Gbyh"
+      click "Heliumbrist Qatar" "https://www.linkedin.com/feed/update/urn:li:activity:7439684118226964480"
+      click "Maersk/MSC avgifter" "https://www.linkedin.com/posts/svensk-osint_iran-conflict-turns-shipping-market-into-activity-7440115016219115520-LjVQ"
+      click "Trump Hormuz-dispyt" "https://www.linkedin.com/posts/svensk-osint_donald-trump-har-publicerat-ett-inl%C3%A4gg-p%C3%A5-activity-7439745055998832640-34DZ"
+      click "Joe Kent avgång" "https://www.linkedin.com/posts/svensk-osint_no-imminent-threat-us-counterterrorism-activity-7439676876958224384-dvDy"
+      click "FOI Militärteknik 2050" "https://www.linkedin.com/posts/svensk-osint_milit%C3%A4rteknik-2050-totalf%C3%B6rsvarets-forskningsinstitut-activity-7439948948376756224-oiLH"
+      click "Lågkostnadsrobot 96 USD" "https://www.linkedin.com/posts/svensk-osint_l%C3%A5gkostnadsinnovation-och-vapenteknisk-diffusion-activity-7440683284084244480-mf7F"
+      click "GlassWorm Malware" "https://www.linkedin.com/posts/svensk-osint_glassworm-malware-hits-400-code-repos-on-activity-7439936993440100352-bG3z"
+      click "Arctic Metagaz drivit" "https://www.linkedin.com/posts/svensk-osint_five-eu-leaders-seek-urgent-solution-for-activity-7440857009215913984-Yi87"
+      click "FBI stänger Handala" "https://www.linkedin.com/posts/svensk-osint_fbi-seizes-two-websites-linked-to-pro-iranian-activity-7440447152515977216-LRnA"
+    </pre>
 </div>
+
+<footer>
+    &copy; 2026 Svensk OSINT | Publicerad via GitHub Pages
+</footer>
 
 <script>
     mermaid.initialize({ 
         startOnLoad: true, 
         theme: 'forest',
-        mindmap: { useMaxWidth: true }
+        securityLevel: 'loose',
+        mindmap: { useMaxWidth: true } 
     });
 </script>
 
